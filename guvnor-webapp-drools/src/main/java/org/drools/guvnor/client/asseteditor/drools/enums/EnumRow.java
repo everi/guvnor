@@ -25,14 +25,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.TextArea;
 
-/**
- * Created with IntelliJ IDEA.
- * User: raymondefa
- * Date: 6/6/12
- * Time: 1:34 PM
- * To change this template use File | Settings | File Templates.
- */
-public class EnumRow {
+public class EnumRow implements Comparable<EnumRow>{
 
     private String fieldName="";
     private String factName="";
@@ -89,5 +82,10 @@ public class EnumRow {
 
     public void setContext(String context) {
         this.context=context;
+    }
+
+    @Override
+    public int compareTo(EnumRow o) {
+        return factName.compareTo(o.getFactName());
     }
 }
