@@ -46,9 +46,9 @@ import java.util.*;
 public class EnumEditor extends DirtyableComposite implements EditorWidget, SaveEventListener {
 
 
-    private VerticalPanel panel;
+    private VerticalPanel panel = new VerticalPanel();
 
-    private CellTable cellTable;
+    private CellTable cellTable = new CellTable<EnumRow>();
 
 
     final private RuleContentText data;
@@ -74,8 +74,6 @@ public class EnumEditor extends DirtyableComposite implements EditorWidget, Save
                       int visibleLines) {
 
         sce = SuggestionCompletionCache.getInstance().getEngineFromCache(a.getMetaData().getModuleName());
-        sce.getFactTypes();
-
 
         data = (RuleContentText) a.getContent();
 
@@ -83,17 +81,12 @@ public class EnumEditor extends DirtyableComposite implements EditorWidget, Save
             data.content = "";
         }
 
-        cellTable = new CellTable<EnumRow>();
         cellTable.setWidth("100%");
 
         List<String> list = new ArrayList<String>();
         list.addAll(Arrays.asList(sce.getFactTypes()));
 
-        panel = new VerticalPanel();
-
-
-        String[] array = data.content.split("\n");
-        for (String line : array) {
+        for (String line : data.content.split("\n")) {
             EnumRow enumRow = new EnumRow(line);
             if (!list.contains(enumRow.getFactName())) {
                 list.add(enumRow.getFactName());
@@ -101,43 +94,19 @@ public class EnumEditor extends DirtyableComposite implements EditorWidget, Save
             dataProvider.getList().add(enumRow);
         }
 
-        Column<EnumRow, String> alertColumn = createAlertColumn();
-        Column<EnumRow, String> deleteButtonColumn = createDeleteButtonColumn();
-
-        Column<EnumRow, String> factNameColumn = createFactNameColumn(list);
-
-        Column<EnumRow, String> fieldNameColumn = createFieldNameColumn();
-        Column<EnumRow, Context> contextColumn = createContextColumn();
-        Column<EnumRow, String> dependentColumn = createDependentColumn();
-
-
-        ColumnSortEvent.ListHandler<EnumRow> columnSortHandler = new ColumnSortEvent.ListHandler<EnumRow>(dataProvider.getList());
-        columnSortHandler.setComparator(factNameColumn,
-                new Comparator<EnumRow>() {
-                    public int compare(EnumRow e1, EnumRow e2) {
-
-                        return e1.compareTo(e2);
-                    }
-                });
-        cellTable.addColumnSortHandler(columnSortHandler);
-        cellTable.getColumnSortList().push(factNameColumn);
-
-        cellTable.addColumn(alertColumn);
-        cellTable.addColumn(deleteButtonColumn);
-        cellTable.addColumn(factNameColumn, "Fact");
-        cellTable.addColumn(fieldNameColumn, "Field");
-        cellTable.addColumn(dependentColumn);
-        cellTable.addColumn(contextColumn, "Context");
+        cellTable.addColumn(createAlertColumn());
+        cellTable.addColumn(createDeleteButtonColumn());
+        cellTable.addColumn(createFactNameColumn(list), "Fact");
+        cellTable.addColumn(createFieldNameColumn(), "Field");
+        cellTable.addColumn(createDependentColumn());
+        cellTable.addColumn(createContextColumn(), "Context");
 
         // Connect the table to the data provider.
         dataProvider.addDataDisplay(cellTable);
 
 
-        Button addButton = createAddButton();
-
-
         panel.add(cellTable);
-        panel.add(addButton);
+        panel.add(createAddButton());
         initWidget(panel);
 
     }
@@ -269,6 +238,17 @@ public class EnumEditor extends DirtyableComposite implements EditorWidget, Save
                 dataProvider.refresh();
             }
         });
+
+        ColumnSortEvent.ListHandler<EnumRow> columnSortHandler = new ColumnSortEvent.ListHandler<EnumRow>(dataProvider.getList());
+        columnSortHandler.setComparator(factNameColumn,
+                new Comparator<EnumRow>() {
+                    public int compare(EnumRow e1, EnumRow e2) {
+
+                        return e1.compareTo(e2);
+                    }
+                });
+        cellTable.addColumnSortHandler(columnSortHandler);
+        cellTable.getColumnSortList().push(factNameColumn);
         return factNameColumn;
     }
 
