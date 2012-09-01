@@ -25,36 +25,50 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.TextArea;
 
-public class EnumRow implements Comparable<EnumRow>{
+public class EnumRow implements Comparable<EnumRow> {
 
-    private String fieldName="";
-    private String factName="";
-    private String context="";
+    private String fieldName = "";
+    private String factName = "";
+    private Context context;
+    private String dependentFieldName = "";
 
     public EnumRow(String line) {
 
-        String text=line;
-         if(text==""){
-             factName="";
-             fieldName="";
-             context="";
-         }
-        else{
-        factName= text.substring(1,text.indexOf("."));
+        String text = line;
+        if (text == "") {
+            factName = "";
+            fieldName = "";
 
-        fieldName = text.substring(text.indexOf(".") +1,text.indexOf("':"));
-         context = text.substring(text.indexOf(":") +1 ).trim();
-         }
+            dependentFieldName = "";
+        } else {
+            if (text.contains("]':")) {
+                factName = text.substring(1, text.indexOf("."));
+
+                fieldName = text.substring(text.indexOf(".") + 1, text.indexOf("["));
+                dependentFieldName = text.substring(text.indexOf("[") + 1, text.indexOf("]':")).trim();
+                context = new TableContext(text.substring(text.indexOf(":") + 1).trim());
+
+
+            } else {
+                factName = text.substring(1, text.indexOf("."));
+
+                fieldName = text.substring(text.indexOf(".") + 1, text.indexOf("':"));
+                context = new TableContext(text.substring(text.indexOf(":") + 1).trim());
+            }
+
+        }
     }
 
 
-
     public String getText() {
-        if(factName==""){
+        if (factName == "") {
             return "";
-        }
-        else {
-        return "'" + factName + "." + fieldName + "': " + context;
+        } else {
+            if (dependentFieldName.equals("")) {
+                return "'" + factName + "." + fieldName + "': " + context;
+            } else {
+                return "'" + factName + "." + fieldName + "[" + dependentFieldName + "]': " + context;
+            }
         }
     }
 
@@ -67,25 +81,33 @@ public class EnumRow implements Comparable<EnumRow>{
         return fieldName;  //To change body of created methods use File | Settings | File Templates.
     }
 
-    public String getContext() {
-        return context;  //To change body of created methods use File | Settings | File Templates.
+    public Context getContext() {
+        return context;
     }
 
     public void setFactName(String factName) {
-        this.factName=factName;
+        this.factName = factName;
 
     }
 
     public void setFieldName(String fieldName) {
-        this.fieldName=fieldName;
+        this.fieldName = fieldName;
     }
 
-    public void setContext(String context) {
-        this.context=context;
+    public void setContext(Context context) {
+        this.context = context;
     }
 
     @Override
     public int compareTo(EnumRow o) {
         return factName.compareTo(o.getFactName());
+    }
+
+    public void setDependentFieldName(String dependentFieldName) {
+        this.dependentFieldName = dependentFieldName;
+    }
+
+    public String getDependentFieldName() {
+        return dependentFieldName;  //To change body of created methods use File | Settings | File Templates.
     }
 }

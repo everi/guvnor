@@ -68,7 +68,7 @@ public class EnumRowTest {
 
         enumRow.setFactName("Address");
         enumRow.setFieldName("street");
-        enumRow.setContext("['carrotstreet', 'mystreet', 'bananastreet']");
+        //enumRow.setContext("['carrotstreet', 'mystreet', 'bananastreet']");
 
         assertEquals("Address", enumRow.getFactName());
         assertEquals("street", enumRow.getFieldName());

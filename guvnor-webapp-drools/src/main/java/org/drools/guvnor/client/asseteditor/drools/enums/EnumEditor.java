@@ -16,19 +16,17 @@
 
 package org.drools.guvnor.client.asseteditor.drools.enums;
 
-import com.google.gwt.cell.client.EditTextCell;
+import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.SelectionCell;
+import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
-
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
-import com.google.gwt.user.client.ui.Button;
-
-import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.*;
 import com.google.gwt.view.client.ListDataProvider;
 import org.drools.guvnor.client.asseteditor.EditorWidget;
 import org.drools.guvnor.client.asseteditor.RuleViewer;
@@ -51,14 +49,6 @@ public class EnumEditor extends DirtyableComposite implements EditorWidget, Save
     private VerticalPanel panel;
 
     private CellTable cellTable;
-    /*private Column<EnumRow, String> column = new Column<EnumRow, String>(new EditTextCell()) {
-
-
-        @Override
-        public String getValue(EnumRow enumRow) {
-            return enumRow.getText();
-        }
-    } ; */
 
 
     final private RuleContentText data;
@@ -85,7 +75,6 @@ public class EnumEditor extends DirtyableComposite implements EditorWidget, Save
 
         sce = SuggestionCompletionCache.getInstance().getEngineFromCache(a.getMetaData().getModuleName());
         sce.getFactTypes();
-        //sce.getFieldCompletions();
 
 
         data = (RuleContentText) a.getContent();
@@ -97,7 +86,7 @@ public class EnumEditor extends DirtyableComposite implements EditorWidget, Save
         cellTable = new CellTable<EnumRow>();
         cellTable.setWidth("100%");
 
-        List<String> list =  new ArrayList<String>();
+        List<String> list = new ArrayList<String>();
         list.addAll(Arrays.asList(sce.getFactTypes()));
 
         panel = new VerticalPanel();
@@ -112,15 +101,14 @@ public class EnumEditor extends DirtyableComposite implements EditorWidget, Save
             dataProvider.getList().add(enumRow);
         }
 
-
+        Column<EnumRow, String> alertColumn = createAlertColumn();
         Column<EnumRow, String> deleteButtonColumn = createDeleteButtonColumn();
 
         Column<EnumRow, String> factNameColumn = createFactNameColumn(list);
 
         Column<EnumRow, String> fieldNameColumn = createFieldNameColumn();
-        Column<EnumRow, String> contextColumn = createContextColumn();
-
-
+        Column<EnumRow, Context> contextColumn = createContextColumn();
+        Column<EnumRow, String> dependentColumn = createDependentColumn();
 
 
         ColumnSortEvent.ListHandler<EnumRow> columnSortHandler = new ColumnSortEvent.ListHandler<EnumRow>(dataProvider.getList());
@@ -134,9 +122,11 @@ public class EnumEditor extends DirtyableComposite implements EditorWidget, Save
         cellTable.addColumnSortHandler(columnSortHandler);
         cellTable.getColumnSortList().push(factNameColumn);
 
+        cellTable.addColumn(alertColumn);
         cellTable.addColumn(deleteButtonColumn);
         cellTable.addColumn(factNameColumn, "Fact");
         cellTable.addColumn(fieldNameColumn, "Field");
+        cellTable.addColumn(dependentColumn);
         cellTable.addColumn(contextColumn, "Context");
 
         // Connect the table to the data provider.
@@ -152,13 +142,35 @@ public class EnumEditor extends DirtyableComposite implements EditorWidget, Save
 
     }
 
+
+    private Column<EnumRow, String> createAlertColumn() {
+        final List<String> list = new ArrayList<String>();
+        list.addAll(Arrays.asList(sce.getFactTypes()));
+
+        Column<EnumRow, String> alertColumn = new Column<EnumRow, String>(new TextCell()) {
+
+
+            @Override
+            public String getValue(EnumRow enumRow) {
+
+                if (!list.contains(enumRow.getFactName())) {
+                    return "Fact type not found!";
+                }
+
+                return "";
+            }
+        };
+
+        return alertColumn;
+    }
+
     private Button createAddButton() {
         return new Button("+", new ClickHandler() {
-                public void onClick(ClickEvent clickEvent) {
-                    EnumRow enumRow = new EnumRow("");
-                    dataProvider.getList().add(enumRow);
-                }
-            });
+            public void onClick(ClickEvent clickEvent) {
+                EnumRow enumRow = new EnumRow("");
+                dataProvider.getList().add(enumRow);
+            }
+        });
     }
 
     private Column<EnumRow, String> createDeleteButtonColumn() {
@@ -170,29 +182,50 @@ public class EnumEditor extends DirtyableComposite implements EditorWidget, Save
         };
         deleteButtonColumn.setFieldUpdater(new FieldUpdater<EnumRow, String>() {
 
-            public void update(int index, EnumRow object, String value) {
-                dataProvider.getList().remove(object);
+            public void update(int index, final EnumRow object, String value) {
+
+                final DialogBox deleteDialogBox = new DialogBox();
+                deleteDialogBox.setGlassEnabled(true);
+                deleteDialogBox.setAnimationEnabled(true);
+                deleteDialogBox.setText("Are you sure you want to delete this row?");
+                deleteDialogBox.center();
+                deleteDialogBox.show();
+
+                Button deleteButton = new Button("Delete", new ClickHandler() {
+                    public void onClick(ClickEvent clickEvent) {
+                        deleteDialogBox.hide();
+                        dataProvider.getList().remove(object);
+                    }
+                });
+
+                Button cancelButton = new Button("Cancel", new ClickHandler() {
+                    public void onClick(ClickEvent clickEvent) {
+                        deleteDialogBox.hide();
+
+                    }
+                });
+                HorizontalPanel buttonPanel = new HorizontalPanel();
+                buttonPanel.add(cancelButton);
+                buttonPanel.add(deleteButton);
+                deleteDialogBox.add(buttonPanel);
+
+
             }
         });
         return deleteButtonColumn;
     }
 
-    private Column<EnumRow, String> createContextColumn() {
-        Column<EnumRow, String> contextColumn = new Column<EnumRow, String>(new EditTextCell()) {
+    private Column<EnumRow, Context> createContextColumn() {
 
+        Column<EnumRow, Context> contextColumn = new Column<EnumRow, Context>(new ContextCell()) {
 
             @Override
-            public String getValue(EnumRow enumRow) {
+            public Context getValue(EnumRow enumRow) {
+
                 return enumRow.getContext();
             }
         };
-        contextColumn.setFieldUpdater(new FieldUpdater<EnumRow, String>() {
 
-            public void update(int index, EnumRow object, String value) {
-
-                object.setContext(value);
-            }
-        });
         return contextColumn;
     }
 
@@ -237,6 +270,76 @@ public class EnumEditor extends DirtyableComposite implements EditorWidget, Save
             }
         });
         return factNameColumn;
+    }
+
+    private Column<EnumRow, String> createDependentColumn() {
+
+        Column<EnumRow, String> dependentColumn = new Column<EnumRow, String>(new ButtonCell()) {
+            @Override
+            public String getValue(EnumRow enumRow1) {
+                return enumRow1.getDependentFieldName();
+            }
+        };
+        dependentColumn.setFieldUpdater(new FieldUpdater<EnumRow, String>() {
+
+            public void update(int index, final EnumRow object, String value) {
+
+
+                final DialogBox dialogBox = new DialogBox();
+                dialogBox.setGlassEnabled(true);
+                dialogBox.setAnimationEnabled(true);
+
+                dialogBox.center();
+
+                dialogBox.show();
+
+
+                final TextBox textBox = new TextBox();
+                final ListBox dropBox = new ListBox();
+                String[] fieldNames = sce.getFieldCompletions(object.getFactName());
+                for (int i = 0; i < fieldNames.length; i++) {
+                    dropBox.addItem(fieldNames[i]);
+                }
+
+
+                if (object.getDependentFieldName().equals("")) {
+                    textBox.setText("");
+                } else {
+                    String[] items = object.getDependentFieldName().split("=");
+
+                    for (int i = 0; i < fieldNames.length; i++) {
+                        if (fieldNames[i].equals(items[0])) {
+                            dropBox.setSelectedIndex(i);
+                        }
+                    }
+                    textBox.setText(items[1]);
+                }
+
+                Button button = new Button("Close", new ClickHandler() {
+                    public void onClick(ClickEvent clickEvent) {
+                        dialogBox.hide();
+                        if (textBox.getText().equals("")) {
+                            object.setDependentFieldName("");
+                        } else {
+                            object.setDependentFieldName(dropBox.getItemText(dropBox.getSelectedIndex()) + "=" + textBox.getText());
+                        }
+                        dataProvider.refresh();
+                    }
+                });
+
+
+                VerticalPanel verticalPanel = new VerticalPanel();
+                verticalPanel.add(dropBox);
+                verticalPanel.add(textBox);
+                verticalPanel.add(button);
+
+                dialogBox.add(verticalPanel);
+
+
+            }
+
+        });
+        return dependentColumn;
     }
 
 
