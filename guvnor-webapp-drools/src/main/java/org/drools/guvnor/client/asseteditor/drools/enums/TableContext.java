@@ -19,12 +19,8 @@ package org.drools.guvnor.client.asseteditor.drools.enums;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
-
-public class TableContext implements Context {
+public class TableContext implements EnumContext {
          private String context = "";
     private String [] array;
      //private List<String> arrayList; //listaksi, lisätään popupista

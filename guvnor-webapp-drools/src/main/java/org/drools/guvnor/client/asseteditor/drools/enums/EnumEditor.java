@@ -184,12 +184,12 @@ public class EnumEditor extends DirtyableComposite implements EditorWidget, Save
         return deleteButtonColumn;
     }
 
-    private Column<EnumRow, Context> createContextColumn() {
+    private Column<EnumRow, EnumContext> createContextColumn() {
 
-        Column<EnumRow, Context> contextColumn = new Column<EnumRow, Context>(new ContextCell()) {
+        Column<EnumRow, EnumContext> contextColumn = new Column<EnumRow, EnumContext>(new ContextCell()) {
 
             @Override
-            public Context getValue(EnumRow enumRow) {
+            public EnumContext getValue(EnumRow enumRow) {
 
                 return enumRow.getContext();
             }

@@ -16,20 +16,11 @@
 
 package org.drools.guvnor.client.asseteditor.drools.enums;
 
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.HasClickHandlers;
-import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.TextArea;
-
 public class EnumRow implements Comparable<EnumRow> {
 
     private String fieldName = "";
     private String factName = "";
-    private Context context;
+    private EnumContext enumContext;
     private String dependentFieldName = "";
 
     public EnumRow(String line) {
@@ -46,14 +37,14 @@ public class EnumRow implements Comparable<EnumRow> {
 
                 fieldName = text.substring(text.indexOf(".") + 1, text.indexOf("["));
                 dependentFieldName = text.substring(text.indexOf("[") + 1, text.indexOf("]':")).trim();
-                context = new TableContext(text.substring(text.indexOf(":") + 1).trim());
+                enumContext = new TableContext(text.substring(text.indexOf(":") + 1).trim());
 
 
             } else {
                 factName = text.substring(1, text.indexOf("."));
 
                 fieldName = text.substring(text.indexOf(".") + 1, text.indexOf("':"));
-                context = new TableContext(text.substring(text.indexOf(":") + 1).trim());
+                enumContext = new TableContext(text.substring(text.indexOf(":") + 1).trim());
             }
 
         }
@@ -65,9 +56,9 @@ public class EnumRow implements Comparable<EnumRow> {
             return "";
         } else {
             if (dependentFieldName.equals("")) {
-                return "'" + factName + "." + fieldName + "': " + context;
+                return "'" + factName + "." + fieldName + "': " + enumContext;
             } else {
-                return "'" + factName + "." + fieldName + "[" + dependentFieldName + "]': " + context;
+                return "'" + factName + "." + fieldName + "[" + dependentFieldName + "]': " + enumContext;
             }
         }
     }
@@ -81,8 +72,8 @@ public class EnumRow implements Comparable<EnumRow> {
         return fieldName;  //To change body of created methods use File | Settings | File Templates.
     }
 
-    public Context getContext() {
-        return context;
+    public EnumContext getContext() {
+        return enumContext;
     }
 
     public void setFactName(String factName) {
@@ -94,8 +85,8 @@ public class EnumRow implements Comparable<EnumRow> {
         this.fieldName = fieldName;
     }
 
-    public void setContext(Context context) {
-        this.context = context;
+    public void setContext(EnumContext enumContext) {
+        this.enumContext = enumContext;
     }
 
     @Override
